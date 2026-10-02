@@ -167,9 +167,20 @@ Each JSON-RPC call writes one structured log line:
 Tool arguments are deliberately not logged, because search queries come from visitors.
 `[observability] enabled = true` in `wrangler.toml` keeps these lines in Workers Logs:
 
-- **Live:** `npx wrangler tail`
+- **Live:** `npx wrangler tail --format pretty`
+  ```
+  POST https://www.albinsblog.com/mcp - Ok @ 10/2/2026, 2:31:46 PM
+    (log) {"event":"mcp_call","method":"tools/call","tool":"search_posts","ok":true,"ms":112}
+  ```
 - **History and queries:** dashboard → Workers & Pages → `albinsblog-webmcp` → **Logs**. Filter on
   `event = mcp_call` to count calls per tool, failures, and latency.
+
+How to read them:
+
+- `tools/list` lines come from Cloudflare's bridge when a WebMCP-enabled browser loads a page.
+  They mean the tools were registered, not that an agent used them.
+- `tools/call` lines mean an agent (or a test) actually ran a tool. Agents' chat interfaces may
+  not name WebMCP tools (ChatGPT desktop shows "Used the browser"), so this is the reliable record.
 
 The logs tell you *which tools* were called and how they performed. They cannot reliably tell you
 *which AI agent* made a browser-originated call.
@@ -213,6 +224,7 @@ None of these affect normal blog pages.
 | Path | Setup |
 |---|---|
 | Browser agents | Read `document.modelContext` on the page; nothing extra to configure |
+| ChatGPT desktop | Open the site in the in-app browser (Ctrl+Shift+B), ask a question about the site, allow site access when prompted, and confirm the `tools/call` lines with `npx wrangler tail --format pretty` |
 | Chrome DevTools MCP | `npx chrome-devtools-mcp@latest --categoryExperimentalWebmcp=true --chrome-arg=--enable-features=WebMCP` (Node 20.19+), then use `list_webmcp_tools` / `execute_webmcp_tool` |
 | Direct MCP clients | Also a standard MCP endpoint: `claude mcp add --transport http albinsblog https://www.albinsblog.com/mcp` |
 
