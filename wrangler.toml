@@ -1,0 +1,12 @@
+name = "albinsblog-webmcp"
+main = "src/index.js"
+compatibility_date = "2025-07-18"
+workers_dev = false
+
+# Only /mcp is handled by this Worker; every other path keeps going to Blogger.
+routes = [
+  { pattern = "www.albinsblog.com/mcp", zone_name = "albinsblog.com" }
+]
+
+[vars]
+BLOG_ORIGIN = "https://www.albinsblog.com"

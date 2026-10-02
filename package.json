@@ -1,0 +1,22 @@
+{
+  "name": "albinsblog-webmcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Same-origin MCP endpoint (/mcp) for www.albinsblog.com, consumed by Cloudflare's WebMCP bridge",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "smoke": "node test/smoke.mjs",
+    "deploy": "wrangler deploy",
+    "bridge-compat": "node test/bridge-compat.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.0"
+  },
+  "license": "MIT",
+  "author": "Albin Issac",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/techforum-repo/albinsblog-webmcp.git"
+  }
+}
