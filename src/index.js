@@ -6,9 +6,14 @@
 // Data comes from Blogger's public JSON feeds, so every tool is read-only.
 
 const PROTOCOL_VERSION = "2025-06-18";
-const SERVER_INFO = { name: "albinsblog-webmcp", version: "0.1.0" };
+const SERVER_INFO = { name: "albinsblog-webmcp", version: "0.2.0" };
 const FEED_CACHE_TTL = 300;
 const POST_PATH_RE = /^\/\d{4}\/\d{2}\/[^/]+\.html$/;
+
+// MCP tool annotations. Every tool only reads this blog's public feeds.
+// (Cloudflare's bridge currently registers name/description/inputSchema only,
+// so these reach direct MCP clients today and browser agents if that changes.)
+const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 
 const TOOLS = [
   {
@@ -66,7 +71,7 @@ const TOOLS = [
       required: ["url"],
     },
   },
-];
+].map((tool) => ({ ...tool, annotations: READ_ONLY }));
 
 export default {
   async fetch(request, env, ctx) {
@@ -91,16 +96,26 @@ export default {
     }
 
     const origin = env.BLOG_ORIGIN || url.origin;
+    const started = Date.now();
+    const tool = msg.method === "tools/call" ? msg.params?.name : undefined;
     try {
       const result = await dispatch(msg.method, msg.params ?? {}, { origin, ctx });
+      logCall({ method: msg.method, tool, ok: !result?.isError, ms: Date.now() - started });
       return rpcResponse({ jsonrpc: "2.0", id: msg.id, result });
     } catch (err) {
+      logCall({ method: msg.method, tool, ok: false, ms: Date.now() - started, error: err.message });
       if (err instanceof RpcError) return rpcResponse(rpcError(msg.id, err.code, err.message));
       console.error("mcp error", err);
       return rpcResponse(rpcError(msg.id, -32603, "Internal error"));
     }
   },
 };
+
+// One structured line per JSON-RPC call for Workers Logs. Tool arguments are
+// deliberately not logged: search queries come from visitors.
+function logCall(fields) {
+  console.log(JSON.stringify({ event: "mcp_call", ...fields }));
+}
 
 async function dispatch(method, params, env) {
   switch (method) {

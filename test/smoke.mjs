@@ -39,6 +39,7 @@ await check("tools/list (bridge startup call)", async () => {
   const r = await rpc("tools/list", {});
   const names = r.result.tools.map((t) => t.name);
   for (const t of r.result.tools) if (t.inputSchema?.type !== "object") throw new Error(`${t.name} schema not object`);
+  for (const t of r.result.tools) if (t.annotations?.readOnlyHint !== true) throw new Error(`${t.name} not annotated readOnlyHint`);
   return names.join(", ");
 });
 

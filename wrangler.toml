@@ -8,5 +8,9 @@ routes = [
   { pattern = "www.albinsblog.com/mcp", zone_name = "albinsblog.com" }
 ]
 
+# Workers Logs: keeps the structured "mcp_call" lines (method, tool, ok, ms).
+[observability]
+enabled = true
+
 [vars]
 BLOG_ORIGIN = "https://www.albinsblog.com"

@@ -46,6 +46,10 @@ Chrome tab ──▶ Cloudflare edge ──▶ Blogger (all normal pages)
 All tools are **read-only** and use only public data. `get_post` and `related_posts`
 accept only this blog's `/YYYY/MM/slug.html` post URLs.
 
+Every tool is published with MCP annotations `readOnlyHint: true` and `openWorldHint: false`.
+Direct MCP clients see them now. Cloudflare's bridge currently registers only name, description
+and input schema in the browser, so browser agents don't receive the annotations yet.
+
 ## Project structure
 
 ```
@@ -148,7 +152,27 @@ Guidelines:
 - `inputSchema` must have `type: "object"`, or the bridge skips the tool.
 - Return failures as tool results (`isError: true` with a readable message) so the
   agent can recover. The handler wrapper already does this for thrown errors.
+- Mark every new tool's side effects. Read-only tools get the shared `READ_ONLY` annotations
+  automatically; a tool that changes state needs its own `annotations` (and a hard look at the security model).
 - Watch logs during testing: `npx wrangler tail`.
+
+## Logs and monitoring
+
+Each JSON-RPC call writes one structured log line:
+
+```json
+{"event":"mcp_call","method":"tools/call","tool":"search_posts","ok":true,"ms":103}
+```
+
+Tool arguments are deliberately not logged, because search queries come from visitors.
+`[observability] enabled = true` in `wrangler.toml` keeps these lines in Workers Logs:
+
+- **Live:** `npx wrangler tail`
+- **History and queries:** dashboard → Workers & Pages → `albinsblog-webmcp` → **Logs**. Filter on
+  `event = mcp_call` to count calls per tool, failures, and latency.
+
+The logs tell you *which tools* were called and how they performed. They cannot reliably tell you
+*which AI agent* made a browser-originated call.
 
 ## Rollback
 
@@ -209,6 +233,8 @@ None of these affect normal blog pages.
 On Workers' free plan (100,000 requests/day), each page view from a WebMCP-enabled
 browser makes one `tools/list` request, plus one request per tool call. Feed fetches
 are cached for 5 minutes. Usage: dashboard → Workers & Pages → `albinsblog-webmcp` → Metrics.
+Workers Logs has its own included volume and retention per plan; check Cloudflare's current
+Workers pricing if traffic grows.
 
 ## License
 
