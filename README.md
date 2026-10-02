@@ -196,10 +196,17 @@ None of these affect normal blog pages.
 4. Call a tool as an agent would (type `allow pasting` first if Chrome blocks the paste):
    ```js
    const t = (await document.modelContext.getTools()).find(x => x.name === "search_posts");
-   await document.modelContext.executeTool(t, JSON.stringify({ query: "AEM SSO", limit: 3 }));
+
+   // Chrome 155+: plain object (JSON-string input is deprecated from 155)
+   await document.modelContext.executeTool(t, { query: "AEM SSO", limit: 3 });
    ```
-   The call appears under **Tool Activity**. The API shape has changed between Chrome
-   versions; on some builds it is `navigator.modelContextTesting.executeTool("search_posts", json)`.
+   The call appears under **Tool Activity**. The API has changed between Chrome versions.
+   These older forms are what I tested (October 2026):
+   - Chrome 154: `executeTool(t, JSON.stringify({ query: "AEM SSO", limit: 3 }))`. A plain object
+     failed there with "Failed to parse input arguments".
+   - Chrome 150: `navigator.modelContextTesting.executeTool("search_posts", json)`.
+
+   See Chrome's [WebMCP imperative API](https://developer.chrome.com/docs/ai/webmcp/imperative-api) docs for the current form.
 
 ## Using it from AI agents
 
