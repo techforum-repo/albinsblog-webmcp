@@ -1,4 +1,4 @@
-# albinsblog-webmcp
+> **This repository has moved.** It now lives in [`ai-experiments/albinsblog-webmcp`](https://github.com/techforum-repo/ai-experiments/tree/main/albinsblog-webmcp), with its full commit history. This repo is archived and read-only.# albinsblog-webmcp
 
 A Cloudflare Worker that makes a Blogger blog usable by AI agents through **WebMCP**.
 It serves a read-only MCP endpoint at `https://www.albinsblog.com/mcp`. Cloudflare's
